@@ -1,0 +1,31 @@
+.container {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+}
+
+.column {
+    width: 48%; /* Adjust the width as needed */
+    margin-bottom: 20px; /* Add margin between columns */
+    box-sizing: border-box; /* Include padding and border in the total width/height */
+    background-color: #eee;
+    padding: 12px;
+    border-radius: 4px;
+    text-align: center;
+}
+.column img{
+    max-width: 200px;
+}
+.cmp_table{
+    background-color: #eee;
+    margin-bottom: 25px;
+}
+.margin-y{
+    margin-top: 12px;
+    margin-bottom: 4px;
+}
+@media (max-width: 768px) {
+    .column {
+        width: 100%; /* Make columns stack on smaller screens */
+    }
+}
