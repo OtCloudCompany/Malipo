@@ -14,7 +14,10 @@ namespace APP\plugins\paymethod\malipo;
 
 use APP\core\Application;
 use Error;
+use Exception;
 use PKP\payment\QueuedPayment;
+use Stripe\Checkout\Session;
+use Stripe\Exception\ApiErrorException;
 
 require_once 'vendor/autoload.php';
 
@@ -62,26 +65,20 @@ class Utilities {
         return  $stripeSession->client_secret;
     }
 
-    public function getSessionStatus(){
+    /**
+     * @throws ApiErrorException
+     */
+    public function getSessionStatus(): Session {
         try {
             // retrieve JSON from POST body
             $jsonStr = file_get_contents('php://input');
             $jsonObj = json_decode($jsonStr);
 
-            $session = $this->stripeClient->checkout->sessions->retrieve
-            ($jsonObj->session_id);
-
-            return json_encode([
-                'status' => $session->status,
-                'customer_email' => $session->customer_details->email
-            ]);
+            return $this->stripeClient->checkout->sessions->retrieve($jsonObj->session_id);
 
         } catch (Error $e) {
-
-            return json_encode([
-                'status' => 'Failed',
-                'error' => $e->getMessage()
-            ]);
+            error_log($e->getMessage());
+            throw new Exception($e->getMessage());
         }
     }
 

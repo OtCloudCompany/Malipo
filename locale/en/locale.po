@@ -29,6 +29,24 @@ msgstr "MPESA Integration for OJS"
 msgid "plugins.paymethod.malipo.mpesa"
 msgstr "Malipo: Mpesa Fee Payment"
 
+msgid "plugins.paymethod.malipo.stripeResponse"
+msgstr "Malipo: Payment Status"
+
+msgid "plugins.paymethod.malipo.paymentStatus"
+msgstr "Payment Status"
+
+msgid "plugins.paymethod.malipo.paymentSucceeded"
+msgstr "Payment Succeeded"
+
+msgid "plugins.paymethod.malipo.paymentFailed"
+msgstr "Payment Failed"
+
+msgid "plugins.paymethod.malipo.paymentName"
+msgstr "Payment for"
+
+msgid "plugins.paymethod.malipo.amount"
+msgstr "Amount"
+
 msgid "plugins.paymethod.malipo.stripe"
 msgstr "Malipo: Stripe Payment"
 

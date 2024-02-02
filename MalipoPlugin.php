@@ -18,6 +18,7 @@ use PKP\db\DAORegistry;
 use PKP\form\Form;
 use PKP\plugins\Hook;
 use PKP\plugins\PaymethodPlugin;
+use Stripe\Exception\ApiErrorException;
 
 class MalipoPlugin extends PaymethodPlugin {
 
@@ -203,9 +204,9 @@ class MalipoPlugin extends PaymethodPlugin {
 
     /**
      * Handle incoming requests/notifications
-     *
      * @param array $args
      * @param \APP\core\Request $request
+     * @throws ApiErrorException
      */
     public function handle($args, $request){
         $journal = $request->getJournal();
@@ -227,7 +228,7 @@ class MalipoPlugin extends PaymethodPlugin {
 
         if ($action == 'init-payment-intent'){
 
-            $stripeClientSecret = $utilities->initPaymentIntent($queuedPayment);
+            $stripeClientSecret = $utilities->initPaymentSession($queuedPayment);
             $publishableKey = $this->getSetting($this->getCurrentContextId(), 'stripePublishableKey');
 
             echo json_encode(
@@ -239,20 +240,14 @@ class MalipoPlugin extends PaymethodPlugin {
         }
 
         if ($action == 'stripe-callback'){
-            try {
-                // retrieve JSON from POST body
-                $jsonStr = file_get_contents('php://input');
-                $jsonObj = json_decode($jsonStr);
+            $session = $utilities->getSessionStatus();
 
-                $session = $stripe->checkout->sessions->retrieve
-                ($jsonObj->session_id);
+            $templateMgr->assign('sessionStatus', $session->status);
+            $templateMgr->assign('amountTotal', $session->amount_total);
+            $templateMgr->assign('currency', $session->currency);
+            $templateMgr->assign('paymentName', $paymentManager->getPaymentName($queuedPayment));
 
-                echo json_encode(['status' => $session->status, 'customer_email' => $session->customer_details->email]);
-                http_response_code(200);
-            } catch (Error $e) {
-                http_response_code(500);
-                echo json_encode(['error' => $e->getMessage()]);
-            }
+
         }
         return null;
     }
