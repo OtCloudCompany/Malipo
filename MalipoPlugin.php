@@ -41,7 +41,7 @@ class MalipoPlugin extends PaymethodPlugin {
             $reqMethod = $this->getRequest()->getRequestMethod();
             $gateway = $this->getRequest()->getUserVar('gateway');
             if ($reqMethod == 'POST' && isset( $gateway ) && $gateway == 'stripe'){
-                $templateMgr->assign('stripePublishableKey', $mpesaLogoUrl);
+//                $templateMgr->assign('stripePublishableKey', $mpesaLogoUrl);
                 $templateMgr->addJavaScript('stripeJs', 'https://js.stripe.com/v3/');
                 $templateMgr->addJavaScript('stripeUtils', $stripeUtilsUrl);
             }
@@ -51,7 +51,6 @@ class MalipoPlugin extends PaymethodPlugin {
             $styleUrl = $request->getBaseUrl() . '/' . $this->getPluginPath() . '/css/style.css';
             $templateMgr->addStyleSheet('malipoStyles', $styleUrl);
         }
-
         return $success;
     }
 
@@ -136,11 +135,11 @@ class MalipoPlugin extends PaymethodPlugin {
     }
 
     public function addSettings($hookName, $form): void {
-        // TODO: Implement saveSettings() method.
+
         import('lib.pkp.classes.components.forms.context.PKPPaymentSettingsForm'); // Load constant
 
         $context = Application::get()->getRequest()->getContext();
-        if ($form->id !== FORM_PAYMENT_SETTINGS || !$context) {
+        if ($form->{'id'} !== FORM_PAYMENT_SETTINGS || !$context) {
             return;
         }
         $form->addGroup([
@@ -169,7 +168,7 @@ class MalipoPlugin extends PaymethodPlugin {
             ->addField(new \PKP\components\forms\FieldText('mpesaPassKey', [
                 'label' => 'Pass Key',
                 'value' => $this->getSetting($context->getId(), 'mpesaPassKey'),
-                'groupId' => 'mpesapayment',
+                'groupId' => 'mpesaPayment',
             ]))
             ->addField(new \PKP\components\forms\FieldText('mpesaBusinessShortCode', [
                 'label' => 'Business Short Code',
@@ -215,40 +214,168 @@ class MalipoPlugin extends PaymethodPlugin {
         $queuedPaymentId = $args[1];
         $templateMgr = TemplateManager::getManager($request);
 
+
         $darajaCallback = $this->getRequest()->url(null, 'payment', 'plugin', [$this->getName(), 'daraja-callback', $queuedPaymentId], []);
+
         $action = $args[0];
 
         $queuedPayment = $queuedPaymentDao->getById($queuedPaymentId);
 
-        if (!$queuedPayment) {
+        // queuedPayment is already fulfilled when confirming payment
+        if (!$queuedPayment && $action !== 'confirm-payment') {
             throw new \Exception("Invalid queued payment ID {$queuedPaymentId}!");
         }
 
         $utilities = new Utilities($this);
 
+        //MPESA Handlers
+        if ($action == 'simulate'){
+
+            if ($request->isGet()) {
+                throw new \Exception("Invalid request in simulate stkPush");
+            }
+
+            try {
+
+                $businessShortCode = $this->getSetting($journal->getId(), 'mpesaBusinessShortCode');
+                $amount = $queuedPayment->getAmount();
+                $partyA = $request->getUserVar('phoneNumber');
+                $partyB = $businessShortCode;
+                $phoneNumber = $partyA;
+                $callBackUrl = $darajaCallback;
+
+                $accountReference = $paymentManager->getPaymentName($queuedPayment);
+                $transactionDesc  = $accountReference;
+
+                $utilities = new Utilities($this);
+
+                $stkPush = $utilities->STKPush($businessShortCode, $amount, $partyA, $partyB, $phoneNumber, $callBackUrl, $accountReference, $transactionDesc);
+                $decoded_resp = json_decode($stkPush);
+
+                $checkoutReqId   = $decoded_resp->{'CheckoutRequestID'};
+                $respDescription = $decoded_resp->{'ResponseDescription'};
+
+                if ($decoded_resp->{'ResponseCode'} == 0){ //success, accepted for processing
+
+                    $templateMgr = TemplateManager::getManager($request);
+
+                    $templateMgr->assign("phoneNumber", $partyA);
+                    $templateMgr->assign("pluginName", $this->getName());
+                    $templateMgr->assign("queuedPaymentId", $queuedPaymentId);
+                    $templateMgr->assign("checkoutReqId", $checkoutReqId);
+                    $templateMgr->display(
+                        $this->getTemplateResource('mpesa_confirm_payment.tpl')
+                    );
+                }else{ // an error occurred
+                    throw new \Exception($checkoutReqId. " FAILED: " . $respDescription);
+                }
+
+            } catch (\Exception $e) {
+                error_log('MPESA transaction exception: ' . $e->getMessage());
+                $templateMgr = TemplateManager::getManager($request);
+                $templateMgr->assign('message', 'plugins.paymethod.malipo.error');
+                $templateMgr->display($this->getTemplateResource('frontend/pages/message.tpl'));
+            }
+        }
+        if ($action == 'daraja-callback'){ //handle the callback from daraja
+
+            error_log("========Daraja callback called===========");
+
+            $callbackResp = file_get_contents('php://input');
+            $decodedResp = json_decode($callbackResp)->{'Body'}->{'stkCallback'};
+
+            $mpesaReqId = $decodedResp->{'CheckoutRequestID'};
+
+            if($decodedResp->{'ResultCode'} == '0'){
+
+                $paymentManager->fulfillQueuedPayment($request, $queuedPayment, $this->getName());
+
+                $callbackMetadataItems = $decodedResp->{'CallbackMetadata'}->{'Item'};
+                $receiptNumber = null;
+
+                foreach ($callbackMetadataItems as $item) {
+                    if($item->{'Name'} === 'MpesaReceiptNumber') {
+                        $receiptNumber = $item->{'Value'};
+                        break;
+                    }
+                }
+                if ($receiptNumber) {
+                    $this->addSettings('mpesa_receipt_for'.$mpesaReqId, $receiptNumber);
+                }
+
+            }else{
+                error_log("MPESA CheckoutRequestID: ".$mpesaReqId);
+                error_log($decodedResp->{'ResultDesc'});
+            }
+        }
+        if ($action == 'confirm-payment'){ //query the transaction status
+
+            error_log(" ======= confirming MPESA payment ========");
+
+            if ($request->isGet()) {
+                throw new \Exception("Invalid request in confirm-payment");
+            }
+
+            $utilities = new Utilities($this);
+            $checkoutReqId = $request->getUserVar('checkoutReqId');
+            $transactionStatus = $utilities->querySTKStatus($journal, $checkoutReqId);
+
+            $templateMgr = TemplateManager::getManager($request);
+
+            $decodedResp = json_decode($transactionStatus);
+            $resultCode = null;
+
+            if ($decodedResp->{'ResponseCode'} == '0') { $resultCode = $decodedResp->{'ResultCode'}; }
+
+            if ($resultCode == '0'){
+                $templateMgr->assign('respMsg', __('plugins.paymethod.malipo.transactionSucceeded'));
+            }else{
+                $templateMgr->assign('failedMsg', __('plugins.paymethod.malipo.transactionFailed'));
+                $templateMgr->assign('respMsg', $decodedResp->{'ResultDesc'});
+            }
+            $templateMgr->display(
+                $this->getTemplateResource('mpesa_transaction_status.tpl')
+            );
+
+        }
+
+        // Stripe handlers
         if ($action == 'init-payment-intent'){
 
-            $stripeClientSecret = $utilities->initPaymentSession($queuedPayment);
+            $stripeSession = $utilities->initPaymentSession($queuedPayment);
+            $stripeClientSecret = $stripeSession->client_secret;
             $publishableKey = $this->getSetting($this->getCurrentContextId(), 'stripePublishableKey');
 
             echo json_encode(
                 array(
                     'clientSecret' => $stripeClientSecret,
                     'publishableKey' => $publishableKey,
+                    'sessionId' => $stripeSession->id,
                 )
             );
         }
 
         if ($action == 'stripe-callback'){
-            $session = $utilities->getSessionStatus();
+
+            error_log("======== Stripe callback called =========");
+            error_log($request->getRequestUrl());
+            error_log($request->getRemoteAddr());
+            error_log($request->getRequestMethod());
+
+            $session = $utilities->retrieveSessionStatus($request);
+
+            $paymentManager->fulfillQueuedPayment($request, $queuedPayment, $this->getName());
 
             $templateMgr->assign('sessionStatus', $session->status);
             $templateMgr->assign('amountTotal', $session->amount_total);
             $templateMgr->assign('currency', $session->currency);
             $templateMgr->assign('paymentName', $paymentManager->getPaymentName($queuedPayment));
 
-
+            $templateMgr->display(
+                $this->getTemplateResource('mpesa_transaction_status.tpl')
+            );
         }
+
         return null;
     }
 
@@ -272,7 +399,7 @@ class MalipoPlugin extends PaymethodPlugin {
      */
     public function getDescription(): string {
         // TODO: Implement getDescription() method.
-        return "Integrates Stripe and MPesa Payment options into OJS >=3.4";
+        return "Integrates Stripe and MPesa Payment options into OJS. Tested on OJS 3.4";
     }
 
     /*

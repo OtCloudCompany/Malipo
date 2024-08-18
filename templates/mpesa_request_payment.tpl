@@ -25,21 +25,21 @@
             >
                 <table class="cmp_table">
                     <tr>
-                        <th>{translate key="plugins.paymethod.mpesa.purchase.title"}</th>
+                        <th>{translate key="plugins.paymethod.malipo.purchase.title"}</th>
                         <td>{$itemName|escape}</td>
                     </tr>
                     {if $itemAmount}
                         <tr>
-                            <th>{translate key="plugins.paymethod.mpesa.purchase.fee"}</th>
+                            <th>{translate key="plugins.paymethod.malipo.purchase.fee"}</th>
                             <td>{$itemAmount|string_format:"%.2f"}{if $itemCurrencyCode} ({$itemCurrencyCode|escape}){/if}</td>
                         </tr>
                     {/if}
 
                     <tr>
-                        <th>{translate key="plugins.paymethod.mpesa.purchase.phoneNumber"}</th>
+                        <th>{translate key="plugins.paymethod.malipo.purchase.phoneNumber"}</th>
                         <td>
                             <input type="text" id="phoneNumber" name="phoneNumber"
-                                   value="{$paymentForm.phoneNumber|default:''}" required>
+                                   value="{$paymentForm.phoneNumber|default:''}254" required>
                             {if $errors.phoneNumber}
                                 <span class="error">{$errors.phoneNumber}</span>
                             {/if}

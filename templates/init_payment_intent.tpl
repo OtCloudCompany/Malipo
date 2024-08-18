@@ -18,12 +18,12 @@
         <div class="column column-2">
             <table class="cmp_table">
                 <tr>
-                    <th>{translate key="plugins.paymethod.mpesa.purchase.title"}</th>
+                    <th>{translate key="plugins.paymethod.malipo.purchase.title"}</th>
                     <td>{$itemName|escape}</td>
                 </tr>
                 {if $itemAmount}
                     <tr>
-                        <th>{translate key="plugins.paymethod.mpesa.purchase.fee"}</th>
+                        <th>{translate key="plugins.paymethod.malipo.purchase.fee"}</th>
                         <td>{$itemAmount|string_format:"%.2f"}{if $itemCurrencyCode} ({$itemCurrencyCode|escape}){/if}</td>
                     </tr>
                 {/if}

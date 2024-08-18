@@ -7,7 +7,7 @@
  *
  * Mpesa payment page
  *}
-{include file="frontend/components/header.tpl" pageTitle="plugins.paymethod.mpesa"}
+{include file="frontend/components/header.tpl" pageTitle="plugins.paymethod.malipo"}
 <div class="page page_payment_form">
     <div class="container">
         <div class="column column-1">
@@ -15,7 +15,7 @@
         </div>
         <div class="column column-2 bordered">
             <h1 class="page_title">
-                {translate key="plugins.paymethod.mpesa.stkRequestedHeader"}
+                {translate key="plugins.paymethod.malipo.stkRequestedHeader"}
             </h1>
             <div>
                 <p>

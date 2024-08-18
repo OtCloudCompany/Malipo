@@ -21,17 +21,13 @@ function getData($) {
 
                 const clientSecret = resp.clientSecret;
                 const publishableKey = resp.publishableKey;
-
-                // console.log(clientSecret);
+                const sessionId = resp.sessionId;
 
                 const stripe = Stripe(publishableKey);
                 const checkout = await stripe.initEmbeddedCheckout({clientSecret});
 
                 // Mount Checkout
                 checkout.mount("#checkoutElem");
-
-
-
             }
         });
     });
