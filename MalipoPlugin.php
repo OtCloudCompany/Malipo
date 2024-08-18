@@ -214,7 +214,6 @@ class MalipoPlugin extends PaymethodPlugin {
         $queuedPaymentId = $args[1];
         $templateMgr = TemplateManager::getManager($request);
 
-
         $darajaCallback = $this->getRequest()->url(null, 'payment', 'plugin', [$this->getName(), 'daraja-callback', $queuedPaymentId], []);
 
         $action = $args[0];
@@ -340,7 +339,7 @@ class MalipoPlugin extends PaymethodPlugin {
         }
 
         // Stripe handlers
-        if ($action == 'init-payment-intent'){
+        if ($action == 'init-payment-intent'){ //
 
             $stripeSession = $utilities->initPaymentSession($queuedPayment);
             $stripeClientSecret = $stripeSession->client_secret;
@@ -350,7 +349,6 @@ class MalipoPlugin extends PaymethodPlugin {
                 array(
                     'clientSecret' => $stripeClientSecret,
                     'publishableKey' => $publishableKey,
-                    'sessionId' => $stripeSession->id,
                 )
             );
         }
@@ -358,13 +356,14 @@ class MalipoPlugin extends PaymethodPlugin {
         if ($action == 'stripe-callback'){
 
             error_log("======== Stripe callback called =========");
-            error_log($request->getRequestUrl());
-            error_log($request->getRemoteAddr());
-            error_log($request->getRequestMethod());
 
             $session = $utilities->retrieveSessionStatus($request);
 
-            $paymentManager->fulfillQueuedPayment($request, $queuedPayment, $this->getName());
+            if ($session->status == 'open'){
+                $request->redirect(null, 'payment', 'plugin', [$this->getName()], ['queuedPaymentId' => $queuedPayment->getId()]);
+            }else if($session->status == 'complete'){
+                $paymentManager->fulfillQueuedPayment($request, $queuedPayment, $this->getName());
+            }
 
             $templateMgr->assign('sessionStatus', $session->status);
             $templateMgr->assign('amountTotal', $session->amount_total);
@@ -372,7 +371,7 @@ class MalipoPlugin extends PaymethodPlugin {
             $templateMgr->assign('paymentName', $paymentManager->getPaymentName($queuedPayment));
 
             $templateMgr->display(
-                $this->getTemplateResource('mpesa_transaction_status.tpl')
+                $this->getTemplateResource('stripe_callback_response.tpl')
             );
         }
 
