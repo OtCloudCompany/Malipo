@@ -1,11 +1,11 @@
 /**
-* plugins/paymethod/mpesa/templates/init_payment_intent.tpl
+* plugins/paymethod/malipo/js/stripeUtils.js
 *
-* Copyright (c) 2024 HyperLink Consulting Ltd
+* Copyright (c) 2024 OtCloud Company Limited
 * Copyright (c) 2024 Otuoma Sanya
-* Distributed under the GNU GPL v3.
+* Distributed under the GNU GPL v3, see LICENSE
 *
-* Mpesa payment plugin
+* Malipo: Stripe and MPESA payment plugin for OJS
 */
 function getData($) {
     $(document).ready(function () {

@@ -3,11 +3,11 @@
 /**
  * @file plugins/paymethod/malipo/Utilities.php
  *
- * Copyright (c) 2024 HyperLink DSL
+ * Copyright (c) 2024 OtCloud Company Limited
  * Copyright (c) 2024 Otuoma Sanya
  * Distributed under the GNU GPL v3.
  * @class Utilities
- * @brief Mpesa payment page
+ * @brief Mpesa/Stripe payment page
  */
 
 namespace APP\plugins\paymethod\malipo;
@@ -23,7 +23,6 @@ use Stripe\Exception\ApiErrorException;
 //require_once 'vendor/autoload.php';
 require_once('vendor/stripe/init.php');
 
-
 class Utilities {
 
     public MalipoPlugin $plugin;
@@ -38,7 +37,6 @@ class Utilities {
 
         $this->stripeSecretKey = $plugin->getSetting($this->plugin->getCurrentContextId(), 'stripeSecretKey');
         $this->stripeClient = new \Stripe\StripeClient(["api_key"=>$this->stripeSecretKey]);
-
     }
 
     public function initPaymentSession(QueuedPayment $queuedPayment): Session {

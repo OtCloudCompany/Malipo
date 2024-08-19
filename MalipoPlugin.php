@@ -2,12 +2,12 @@
 /**
  * @file plugins/paymethod/malipo/MalipoPlugin.php
  *
- * Copyright (c) 2024 HyperLink Consulting LTD
+ * Copyright (c) 2024 OtCloud Company LTD
  * Copyright (c) 2024 Otuoma Sanya
  * Distributed under the GNU GPL v3.
  * Resource: https://stripe.com/docs/payments/accept-a-payment?platform=web&ui=embedded-checkout
  * @class MalipoPlugin
- * @brief Mpesa payment plugin
+ * @brief Mpesa and Stripe payment for OJS
  */
 namespace APP\plugins\paymethod\malipo;
 

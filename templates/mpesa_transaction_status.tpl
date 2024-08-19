@@ -1,11 +1,11 @@
 {**
- * plugins/paymethod/mpesa/templates/mpesa_transaction_status.tpl
+ * plugins/paymethod/malipo/templates/mpesa_transaction_status.tpl
  *
- * Copyright (c) 2024 HyperLink DSL
+ * Copyright (c) 2024 OtCLoud Company Limited
  * Copyright (c) 2024 Otuoma Sanya
- * Distributed under the GNU GPL v3.
+ * Distributed under the GNU GPL v3. For full terms see LICENSE file
  *
- * Mpesa payment page
+ * MPESA and Stripe Payment PLugin for OJS
  *}
 {include file="frontend/components/header.tpl" pageTitle="plugins.paymethod.malipo"}
 <div class="page page_payment_form">

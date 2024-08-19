@@ -1,8 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE version SYSTEM "../../../lib/pkp/dtd/pluginVersion.dtd">
+
+<!--
+  * plugins/paymethod/malipo/version.xml
+  *
+  * Copyright (c) 2024 OtCloud Company Limited
+  * Copyright (c) 2024 Otuoma Sanya
+  * Distributed under the GNU GPL v3. For full terms see the file docs/COPYING.
+  *
+  * Plugin version information.
+  -->
 <version>
-    <application>malipo</application>
-    <type>plugins.paymethod</type>
-    <release>1.0.0.0</release>
-    <date>2024-02-09</date>
+	<application>malipo</application>
+	<type>plugins.paymethod</type>
+	<release>1.0.0.0</release>
+	<date>2024-08-19</date>
 </version>
