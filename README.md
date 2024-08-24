@@ -5,9 +5,10 @@ An OJS plugin that integrates MPESA and Stripe into OJS payments.
 
 **Inspiration** - OJS supports only paypal and manual payments when there are so many
 payment methods in the world. On top of that, only one paymethod can be enabled at a time.
-It being 2024, customers (authors) should have the freedom to choose how they want to pay
-and not restricted to paypal and manual methods only. This project is an attempt add more
-options for OJS users when it comes to payment methods.
+It being 2024, customers (authors and subscribers) should have the freedom to choose how they want to pay
+and not be restricted to paypal and manual methods only. This project is an attempt to add more
+options for OJS where customers are presented with multiple options on how to pay, just like we see
+on many other platforms.
 
 **WARNING**: This plugin is still under development and testing. 
 It is being developed on OJS 3.4 and has not been tested at all on
