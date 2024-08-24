@@ -13,6 +13,10 @@ options for OJS users when it comes to payment methods.
 It is being developed on OJS 3.4 and has not been tested at all on
 older versions. Please test the plugin thoroughly before deploying it to a production server.
 
+**TODO**
+1. Thoroughly test the plugin including in production modes, find and fix any issues.
+2. Add PayPal as a third payment option in the plugin.
+
 ## Considerations
 1. The plugin requires OJS version 3.4.0-7 that was released on August 23, 2024 or newer. See the issue here https://github.com/pkp/pkp-lib/issues/10327
 2. For now, php-curl is required on the server for stripe to work
